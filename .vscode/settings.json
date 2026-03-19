@@ -1,0 +1,9 @@
+{
+  "git.autoRepositoryDetection": "subFolders",
+  "git.scanRepositories": [
+    "admin-panel",
+    "tipsterBro",
+    "tipsterBro-bakend",
+    "chatbot-widget"
+  ]
+}
