@@ -21,6 +21,12 @@ export interface ChatMessage {
   content?: Record<string, unknown> | null;
 }
 
+export interface GuestChatRequest {
+  sessionId: string;
+  message: string;
+  locale?: string;
+}
+
 export class ChatApiService {
   private apiUrl: string;
 
@@ -31,11 +37,18 @@ export class ChatApiService {
   async sendMessage(
     sessionId: string,
     message: string,
+    locale?: string,
   ): Promise<ChatMessage[]> {
+    const payload: GuestChatRequest = { sessionId, message };
+
+    if (locale) {
+      payload.locale = locale;
+    }
+
     const response = await fetch(`${this.apiUrl}/chat/guest-message`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, message }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

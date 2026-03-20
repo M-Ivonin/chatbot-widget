@@ -198,11 +198,13 @@ export class ChatWindow extends LitElement {
 
   private api!: ChatApiService;
   private sessionId = '';
+  private browserLocale = 'en-US';
 
   connectedCallback() {
     super.connectedCallback();
     this.api = new ChatApiService(this.apiUrl);
     this.sessionId = getSessionId();
+    this.browserLocale = this.getBrowserLocale();
   }
 
   private async handleSendMessage(e: CustomEvent<{ text: string }>) {
@@ -220,7 +222,11 @@ export class ChatWindow extends LitElement {
     this.error = '';
 
     try {
-      const responseMessages = await this.api.sendMessage(this.sessionId, text);
+      const responseMessages = await this.api.sendMessage(
+        this.sessionId,
+        text,
+        this.browserLocale,
+      );
 
       const assistantMessages = responseMessages.filter(
         (m) => m.role === 'assistant',
@@ -250,6 +256,14 @@ export class ChatWindow extends LitElement {
     this.dispatchEvent(
       new CustomEvent('close-chat', { bubbles: true, composed: true }),
     );
+  }
+
+  private getBrowserLocale(): string {
+    if (typeof navigator === 'undefined') {
+      return 'en-US';
+    }
+
+    return navigator.languages?.[0] || navigator.language || 'en-US';
   }
 
   render() {
