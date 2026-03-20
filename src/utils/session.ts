@@ -1,4 +1,11 @@
-const SESSION_KEY = 'sirbro-chat-session-id';
+const SESSION_KEY = 'sirbro-chat-session';
+const LEGACY_SESSION_KEY = 'sirbro-chat-session-id';
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+
+type StoredSession = {
+  id: string;
+  createdAt: number;
+};
 
 function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -12,13 +19,40 @@ function generateUUID(): string {
 }
 
 export function getSessionId(): string {
+  const now = Date.now();
+
   try {
-    let id = localStorage.getItem(SESSION_KEY);
-    if (!id) {
-      id = generateUUID();
-      localStorage.setItem(SESSION_KEY, id);
+    const rawSession = localStorage.getItem(SESSION_KEY);
+    if (rawSession) {
+      const parsed = JSON.parse(rawSession) as Partial<StoredSession>;
+      if (
+        typeof parsed.id === 'string' &&
+        typeof parsed.createdAt === 'number' &&
+        now - parsed.createdAt < SESSION_TTL_MS
+      ) {
+        return parsed.id;
+      }
     }
-    return id;
+
+    const legacySessionId = localStorage.getItem(LEGACY_SESSION_KEY);
+    if (legacySessionId) {
+      const migratedSession: StoredSession = {
+        id: legacySessionId,
+        createdAt: now,
+      };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(migratedSession));
+      localStorage.removeItem(LEGACY_SESSION_KEY);
+      return migratedSession.id;
+    }
+
+    const nextSession: StoredSession = {
+      id: generateUUID(),
+      createdAt: now,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+    localStorage.removeItem(LEGACY_SESSION_KEY);
+
+    return nextSession.id;
   } catch {
     return generateUUID();
   }

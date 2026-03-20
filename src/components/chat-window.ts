@@ -4,6 +4,7 @@ import { chatTheme } from '../styles/theme.js';
 import { ChatApiError, ChatApiService } from '../services/api.js';
 import type { ChatMessage, RateLimitPopupData } from '../services/api.js';
 import { getSessionId } from '../utils/session.js';
+import { loadSessionMessages, saveSessionMessages } from '../utils/history.js';
 
 import './message-list.js';
 import './message-input.js';
@@ -310,6 +311,13 @@ export class ChatWindow extends LitElement {
     this.api = new ChatApiService(this.apiUrl);
     this.sessionId = getSessionId();
     this.browserLocale = this.getBrowserLocale();
+    this.messages = loadSessionMessages(this.sessionId);
+  }
+
+  protected updated(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('messages') && this.sessionId) {
+      saveSessionMessages(this.sessionId, this.messages);
+    }
   }
 
   private async handleSendMessage(e: CustomEvent<{ text: string }>) {
@@ -351,7 +359,7 @@ export class ChatWindow extends LitElement {
         ];
       }
     } catch (err) {
-      if (err instanceof ChatApiError && err.status === 429 && err.rateLimit) {
+      if (err instanceof ChatApiError && err.rateLimit) {
         this.rateLimitPopup = err.rateLimit;
         return;
       }

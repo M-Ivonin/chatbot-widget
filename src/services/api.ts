@@ -34,6 +34,8 @@ export interface GuestChatRequest {
   locale?: string;
 }
 
+type SupportedLocale = 'en-US' | 'es-419' | 'pt-BR';
+
 export class ChatApiError extends Error {
   status: number;
   code?: string;
@@ -94,20 +96,36 @@ export class ChatApiService {
 
     const data: ChatResponse = await response.json();
 
-    return data.messages.map((msg) => ({
-      role: msg.type === 'user' ? ('user' as const) : ('assistant' as const),
-      text: this.extractText(msg.content),
-      timestamp: new Date(msg.timestamp || msg.createdAt || Date.now()),
-      messageType: msg.messageType ?? undefined,
-      content: msg.content,
-    }));
+    return data.messages.map((msg) => {
+      const messageType = this.resolveMessageType(msg);
+      const content = msg.content ?? null;
+
+      return {
+        role: msg.type === 'user' ? ('user' as const) : ('assistant' as const),
+        text: this.extractText(content, messageType, locale),
+        timestamp: new Date(msg.timestamp || msg.createdAt || Date.now()),
+        messageType,
+        content,
+      };
+    });
   }
 
-  private extractText(content: Record<string, unknown> | null): string {
+  private extractText(
+    content: Record<string, unknown> | null,
+    messageType?: string,
+    locale?: string,
+  ): string {
     if (!content) return '';
 
     if (typeof content['text'] === 'string') {
       return content['text'];
+    }
+
+    if (
+      messageType === 'prediction' ||
+      this.isPredictionContent(content)
+    ) {
+      return this.formatPredictionMarkdown(content, locale);
     }
 
     if (typeof content['analysis'] === 'string') {
@@ -115,6 +133,107 @@ export class ChatApiService {
     }
 
     return JSON.stringify(content);
+  }
+
+  private resolveMessageType(message: MessageItem): string | undefined {
+    if (typeof message.messageType === 'string' && message.messageType.length > 0) {
+      return message.messageType;
+    }
+
+    if (this.isPredictionContent(message.content)) {
+      return 'prediction';
+    }
+
+    return undefined;
+  }
+
+  private isPredictionContent(
+    content: Record<string, unknown> | null,
+  ): content is Record<string, unknown> {
+    return (
+      !!content &&
+      typeof content['eventName'] === 'string' &&
+      typeof content['predictionValue'] === 'string'
+    );
+  }
+
+  private normalizeLocale(locale?: string): SupportedLocale {
+    const normalized = locale?.toLowerCase().replace('_', '-');
+
+    if (normalized?.startsWith('es')) {
+      return 'es-419';
+    }
+
+    if (normalized?.startsWith('pt')) {
+      return 'pt-BR';
+    }
+
+    return 'en-US';
+  }
+
+  private formatPredictionMarkdown(
+    content: Record<string, unknown>,
+    locale?: string,
+  ): string {
+    const normalizedLocale = this.normalizeLocale(locale);
+    const labels: Record<
+      SupportedLocale,
+      {
+        prediction: string;
+        match: string;
+        kickoff: string;
+        odds: string;
+        analysis: string;
+      }
+    > = {
+      'en-US': {
+        prediction: 'Prediction',
+        match: 'Match',
+        kickoff: 'Kickoff',
+        odds: 'Odds',
+        analysis: 'Analysis',
+      },
+      'es-419': {
+        prediction: 'Prediccion',
+        match: 'Partido',
+        kickoff: 'Inicio',
+        odds: 'Cuota',
+        analysis: 'Analisis',
+      },
+      'pt-BR': {
+        prediction: 'Palpite',
+        match: 'Partida',
+        kickoff: 'Inicio',
+        odds: 'Odds',
+        analysis: 'Analise',
+      },
+    };
+
+    const safeString = (value: unknown): string =>
+      typeof value === 'string' ? value.trim() : '';
+
+    const eventName = safeString(content['eventName']);
+    const eventDate = safeString(content['eventDate']);
+    const eventTime = safeString(content['timestamp']);
+    const predictionValue = safeString(content['predictionValue']);
+    const predictionType = safeString(content['predictionType']);
+    const odds = safeString(content['odds']);
+    const analysis = safeString(content['analysis']);
+    const kickoff = [eventDate, eventTime].filter(Boolean).join(' • ');
+    const localizedLabels = labels[normalizedLocale];
+
+    const lines = [
+      predictionValue
+        ? `**${localizedLabels.prediction}:** ${predictionValue}`
+        : '',
+      predictionType ? `*${predictionType}*` : '',
+      eventName ? `**${localizedLabels.match}:** ${eventName}` : '',
+      kickoff ? `**${localizedLabels.kickoff}:** ${kickoff}` : '',
+      odds ? `**${localizedLabels.odds}:** ${odds}` : '',
+      analysis ? `\n**${localizedLabels.analysis}:**\n${analysis}` : '',
+    ].filter((line) => line.length > 0);
+
+    return lines.join('\n');
   }
 
   private extractRateLimitPopupData(
