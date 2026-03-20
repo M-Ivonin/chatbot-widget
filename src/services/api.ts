@@ -21,10 +21,36 @@ export interface ChatMessage {
   content?: Record<string, unknown> | null;
 }
 
+export interface RateLimitPopupData {
+  message: string;
+  retryAfterMinutes?: number;
+  iosStoreUrl?: string;
+  androidStoreUrl?: string;
+}
+
 export interface GuestChatRequest {
   sessionId: string;
   message: string;
   locale?: string;
+}
+
+export class ChatApiError extends Error {
+  status: number;
+  code?: string;
+  rateLimit?: RateLimitPopupData;
+
+  constructor(params: {
+    message: string;
+    status: number;
+    code?: string;
+    rateLimit?: RateLimitPopupData;
+  }) {
+    super(params.message);
+    this.name = 'ChatApiError';
+    this.status = params.status;
+    this.code = params.code;
+    this.rateLimit = params.rateLimit;
+  }
 }
 
 export class ChatApiService {
@@ -55,7 +81,15 @@ export class ChatApiService {
       const errorData = await response.json().catch(() => null);
       const errorMessage =
         errorData?.message || `Request failed (${response.status})`;
-      throw new Error(errorMessage);
+      throw new ChatApiError({
+        message: errorMessage,
+        status: response.status,
+        code: typeof errorData?.code === 'string' ? errorData.code : undefined,
+        rateLimit:
+          response.status === 429
+            ? this.extractRateLimitPopupData(errorData)
+            : undefined,
+      });
     }
 
     const data: ChatResponse = await response.json();
@@ -81,5 +115,37 @@ export class ChatApiService {
     }
 
     return JSON.stringify(content);
+  }
+
+  private extractRateLimitPopupData(
+    errorData: unknown,
+  ): RateLimitPopupData | undefined {
+    if (!errorData || typeof errorData !== 'object') {
+      return undefined;
+    }
+
+    const record = errorData as Record<string, unknown>;
+    const stores =
+      record['stores'] && typeof record['stores'] === 'object'
+        ? (record['stores'] as Record<string, unknown>)
+        : null;
+
+    if (typeof record['message'] !== 'string') {
+      return undefined;
+    }
+
+    return {
+      message: record['message'],
+      retryAfterMinutes:
+        typeof record['retryAfterMinutes'] === 'number'
+          ? record['retryAfterMinutes']
+          : undefined,
+      iosStoreUrl:
+        stores && typeof stores['ios'] === 'string' ? stores['ios'] : undefined,
+      androidStoreUrl:
+        stores && typeof stores['android'] === 'string'
+          ? stores['android']
+          : undefined,
+    };
   }
 }

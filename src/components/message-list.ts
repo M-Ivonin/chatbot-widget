@@ -4,6 +4,7 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import type { ChatMessage } from '../services/api.js';
 
 import './typing-indicator.js';
+import './prediction-card.js';
 
 function renderMarkdown(text: string): string {
   let result = text
@@ -267,6 +268,8 @@ export class MessageList extends LitElement {
 
   @property({ type: Array }) messages: ChatMessage[] = [];
   @property({ type: Boolean }) loading = false;
+  @property({ type: Boolean }) showMarkdown = true;
+  @property({ type: String }) locale = 'en-US';
 
   private suggestions = [
     'What is SirBro?',
@@ -297,6 +300,17 @@ export class MessageList extends LitElement {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  private shouldRenderPredictionCard(msg: ChatMessage): boolean {
+    return (
+      !this.showMarkdown &&
+      msg.role === 'assistant' &&
+      msg.messageType === 'prediction' &&
+      !!msg.content &&
+      typeof msg.content['eventName'] === 'string' &&
+      typeof msg.content['predictionValue'] === 'string'
+    );
   }
 
   render() {
@@ -330,11 +344,20 @@ export class MessageList extends LitElement {
       ${this.messages.map(
         (msg) => html`
           <div class="message ${msg.role}">
-            <div class="bubble">
-              ${msg.role === 'assistant'
-                ? unsafeHTML(renderMarkdown(msg.text))
-                : msg.text}
-            </div>
+            ${this.shouldRenderPredictionCard(msg)
+              ? html`
+                  <sirbro-prediction-card
+                    .content=${msg.content ?? null}
+                    .locale=${this.locale}
+                  ></sirbro-prediction-card>
+                `
+              : html`
+                  <div class="bubble">
+                    ${msg.role === 'assistant'
+                      ? unsafeHTML(renderMarkdown(msg.text))
+                      : msg.text}
+                  </div>
+                `}
             <span class="timestamp">${this.formatTime(msg.timestamp)}</span>
           </div>
         `,

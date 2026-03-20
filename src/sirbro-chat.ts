@@ -22,7 +22,14 @@ export class SirBroChat extends LitElement {
   @property({ type: String, attribute: 'brand-icon' })
   brandIcon = '';
 
+  @property({ type: String, attribute: 'show-markdown' })
+  showMarkdown = 'true';
+
   @state() private open = false;
+
+  private get showMarkdownEnabled(): boolean {
+    return this.showMarkdown !== 'false';
+  }
 
   private toggle() {
     this.open = !this.open;
@@ -39,6 +46,7 @@ export class SirBroChat extends LitElement {
             <sirbro-chat-window
               api-url=${this.apiUrl}
               brand-icon=${this.brandIcon}
+              .showMarkdown=${this.showMarkdownEnabled}
               @close-chat=${this.close}
             ></sirbro-chat-window>
           `
