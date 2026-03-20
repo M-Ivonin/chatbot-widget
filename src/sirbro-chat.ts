@@ -23,7 +23,7 @@ export class SirBroChat extends LitElement {
   brandIcon = '';
 
   @property({ type: String, attribute: 'show-markdown' })
-  showMarkdown = 'true';
+  showMarkdown = 'false';
 
   @state() private open = false;
 

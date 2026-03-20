@@ -295,7 +295,7 @@ export class ChatWindow extends LitElement {
 
   @property({ type: String, attribute: 'api-url' }) apiUrl = '';
   @property({ type: String, attribute: 'brand-icon' }) brandIcon = '';
-  @property({ type: Boolean }) showMarkdown = true;
+  @property({ type: Boolean }) showMarkdown = false;
   @property({ type: Array }) messages: ChatMessage[] = [];
   @property({ type: Boolean }) loading = false;
   @property({ type: String }) error = '';

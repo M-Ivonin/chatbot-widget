@@ -53,14 +53,16 @@ function renderMarkdown(text: string): string {
     }
 
     if (inList) {
-      processed.push(processed[processed.length - 1]?.startsWith('<ol>') ? '</ol>' : '</ul>');
+      processed.push(
+        processed[processed.length - 1]?.startsWith('<ol>') ? '</ol>' : '</ul>',
+      );
       inList = false;
     }
 
     if (trimmed === '') {
-      processed.push('<br/>');
+      processed.push('<div class="md-spacer"></div>');
     } else {
-      processed.push(`<span>${line}</span>`);
+      processed.push(`<div class="md-line">${line}</div>`);
     }
   }
 
@@ -148,6 +150,14 @@ export class MessageList extends LitElement {
       font-weight: 600;
     }
 
+    .bubble .md-line + .md-line {
+      margin-top: 4px;
+    }
+
+    .bubble .md-spacer {
+      height: 8px;
+    }
+
     .bubble em {
       font-style: italic;
     }
@@ -176,12 +186,6 @@ export class MessageList extends LitElement {
 
     .bubble li {
       margin: 2px 0;
-    }
-
-    .bubble br {
-      display: block;
-      content: "";
-      margin-top: 6px;
     }
 
     .timestamp {
