@@ -56,6 +56,7 @@ Partner mode is **auto-detected** when the `partner-id` attribute is present.
 | `partner-logo`    | (none)                          | Partner brand logo URL for co-branded header                     |
 | `partner-name`    | (none)                          | Partner name shown in header and welcome screen                  |
 | `affiliates`      | (none)                          | JSON array of `{casino, url, bonus}` affiliate configs          |
+| `faq-link`        | (none)                          | URL to partner FAQ page (optional, passed to AI for context)     |
 | `accent-color`    | `#6366f1`                       | Override primary accent colour (hex / rgb)                      |
 | `widget-width`    | `400`                           | Widget width in px                                              |
 | `widget-height`   | `560`                           | Widget height in px                                             |

@@ -110,6 +110,7 @@ Partner website                 SirBro Backend              n8n AI Agent
 |--------------------|--------|--------------------------------------------------------------------------|
 | `partner-logo`     | string | Absolute URL to your logo image (PNG/SVG, ideally 40×40px or square)     |
 | `affiliates`       | JSON   | Array of `AffiliateConfig` objects (see below)                           |
+| `faq-link`         | string | URL to your live FAQ page (optional, passed directly to AI for context)   |
 | `accent-color`     | string | CSS hex or rgb colour for buttons and accents (default `#6366f1`)        |
 
 ### Optional Styling
@@ -332,7 +333,7 @@ frame-src   'none';
 
 ### CORS
 
-Your website origin must be explicitly added to the backend CORS allowlist. Provide your production domain(s) to the SirBro team during onboarding.
+No additional CORS configuration is required for partner integrations when using the widget script.
 
 ---
 
