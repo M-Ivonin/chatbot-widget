@@ -47,18 +47,18 @@ Partner mode is **auto-detected** when the `partner-id` attribute is present.
 
 ### All Attributes
 
-| Attribute          | Default                         | Description                                            |
-|-------------------|---------------------------------|--------------------------------------------------------|
-| `api-url`         | `https://api.tipsterbro.com/v1` | Backend API base URL                                   |
-| `brand-icon`      | (none)                          | URL to SirBro icon image                               |
-| `show-markdown`   | `false`                         | Render bot responses as markdown (SirBro mode)         |
-| `partner-id`      | (none)                          | **Enables partner mode** when set; sent to backend     |
-| `partner-logo`    | (none)                          | Partner brand logo URL for co-branded header           |
-| `partner-name`    | (none)                          | Partner name shown in header and welcome screen        |
-| `affiliates`      | (none)                          | JSON array of `{casino, url, bonus}` affiliate configs |
-| `accent-color`    | `#6366f1`                       | Override primary accent colour (hex / rgb)             |
-| `widget-width`    | `400`                           | Widget width in px                                     |
-| `widget-height`   | `560`                           | Widget height in px                                    |
+| Attribute          | Default                         | Description                                                     |
+|-------------------|---------------------------------|-----------------------------------------------------------------|
+| `api-url`         | `https://api.tipsterbro.com/v1` | Backend API base URL (optional, defaults to production)         |
+| `brand-icon`      | (none)                          | URL to SirBro icon image                                        |
+| `show-markdown`   | `false`                         | Render bot responses as markdown (SirBro mode)                   |
+| `partner-id`      | (none)                          | **Enables partner mode** when set; sent to backend               |
+| `partner-logo`    | (none)                          | Partner brand logo URL for co-branded header                     |
+| `partner-name`    | (none)                          | Partner name shown in header and welcome screen                  |
+| `affiliates`      | (none)                          | JSON array of `{casino, url, bonus}` affiliate configs          |
+| `accent-color`    | `#6366f1`                       | Override primary accent colour (hex / rgb)                      |
+| `widget-width`    | `400`                           | Widget width in px                                              |
+| `widget-height`   | `560`                           | Widget height in px                                             |
 
 ### CSS Variable Customisation
 

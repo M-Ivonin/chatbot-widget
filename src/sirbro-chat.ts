@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { chatTheme } from './styles/theme.js';
+import { DEFAULT_API_URL } from './constants.js';
 import type { AffiliateConfig } from './services/api.js';
 
 import './components/chat-bubble.js';
@@ -18,7 +19,7 @@ export class SirBroChat extends LitElement {
   ];
 
   @property({ type: String, attribute: 'api-url' })
-  apiUrl = 'https://api.tipsterbro.com/v1';
+  apiUrl = DEFAULT_API_URL;
 
   @property({ type: String, attribute: 'brand-icon' })
   brandIcon = '';

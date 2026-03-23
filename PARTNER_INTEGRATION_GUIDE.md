@@ -46,7 +46,6 @@ Add the widget script before the closing `</body>` tag of your page:
 
 ```html
 <sirbro-chat
-  api-url="https://api.tipsterbro.com/v1"
   partner-id="YOUR_PARTNER_ID"
   partner-name="YourBrand"
   partner-logo="https://yourdomain.com/logo.png"
@@ -59,6 +58,7 @@ Add the widget script before the closing `</body>` tag of your page:
 ```
 
 > **Note:** `partner-id` must match a record in the `partner_configs` database table configured by the SirBro team. Contact your integration manager to register your partner ID.
+> **Optional:** Override the API endpoint with `api-url="https://your-custom-api.com/v1"` if needed. Defaults to `https://api.tipsterbro.com/v1`.
 
 ---
 

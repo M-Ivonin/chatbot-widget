@@ -56,16 +56,14 @@
 
   <script type="module" src="/src/sirbro-chat.ts"></script>
 
-  <!-- SirBro Mode -->
+  <!-- SirBro Mode (uses default production API) -->
   <sirbro-chat
     id="widget-sirbro"
-    api-url="http://localhost:3001/v1"
   ></sirbro-chat>
 
-  <!-- Partner Mode (hidden by default) -->
+  <!-- Partner Mode (hidden by default, uses default production API) -->
   <sirbro-chat
     id="widget-partner"
-    api-url="http://localhost:3001/v1"
     partner-id="demo-casino-001"
     partner-name="DemoCasino"
     affiliates='[{"casino":"DemoCasino","url":"https://example.com/casino1","bonus":"100% up to €200"},{"casino":"BetKing","url":"https://example.com/casino2","bonus":"50 free spins"},{"casino":"SpinCity","url":"https://example.com/casino3","bonus":"€100 no-deposit"}]'
