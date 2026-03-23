@@ -1,10 +1,11 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import type { ChatMessage } from '../services/api.js';
+import type { AffiliateConfig, ChatMessage } from '../services/api.js';
 
 import './typing-indicator.js';
 import './prediction-card.js';
+import './affiliate-card.js';
 
 function renderMarkdown(text: string): string {
   let result = text
@@ -274,12 +275,58 @@ export class MessageList extends LitElement {
   @property({ type: Boolean }) loading = false;
   @property({ type: Boolean }) showMarkdown = true;
   @property({ type: String }) locale = 'en-US';
+  @property({ type: Boolean }) partnerMode = false;
+  @property({ type: String }) partnerName = '';
+  @property({ type: Array }) affiliates: AffiliateConfig[] = [];
+  @property({ type: String }) betUrl = '';
 
-  private suggestions = [
-    'What is SirBro?',
-    'How do AI predictions work?',
-    'What plans are available?',
-  ];
+  private get defaultSuggestions(): string[] {
+    const suggestions = {
+      'en-US': [
+        'What is SirBro?',
+        'How do AI predictions work?',
+        'What plans are available?',
+      ],
+      'es-LA': [
+        '¿Qué es SirBro?',
+        '¿Cómo funcionan las predicciones de IA?',
+        '¿Qué planes están disponibles?',
+      ],
+      'pt-BR': [
+        'O que é o SirBro?',
+        'Como funcionam as previsões de IA?',
+        'Quais planos estão disponíveis?',
+      ],
+    };
+
+    return suggestions[this.locale as keyof typeof suggestions] || suggestions['en-US'];
+  }
+
+  private get partnerSuggestions(): string[] {
+    const suggestions = {
+      'en-US': [
+        'Give me a football prediction',
+        'I want to play roulette',
+        'What casino games are available?',
+      ],
+      'es-LA': [
+        'Dame una predicción de fútbol',
+        'Quiero jugar a la ruleta',
+        '¿Qué juegos de casino están disponibles?',
+      ],
+      'pt-BR': [
+        'Me dê uma previsão de futebol',
+        'Quero jogar roleta',
+        'Quais jogos de cassino estão disponíveis?',
+      ],
+    };
+
+    return suggestions[this.locale as keyof typeof suggestions] || suggestions['en-US'];
+  }
+
+  private get activeSuggestions(): string[] {
+    return this.partnerMode ? this.partnerSuggestions : this.defaultSuggestions;
+  }
 
   private handleSuggestionClick(text: string) {
     this.dispatchEvent(
@@ -308,7 +355,7 @@ export class MessageList extends LitElement {
 
   private shouldRenderPredictionCard(msg: ChatMessage): boolean {
     return (
-      !this.showMarkdown &&
+      (!this.showMarkdown || this.partnerMode) &&
       msg.role === 'assistant' &&
       msg.messageType === 'prediction' &&
       !!msg.content &&
@@ -317,8 +364,31 @@ export class MessageList extends LitElement {
     );
   }
 
+  private shouldRenderAffiliateCard(msg: ChatMessage): boolean {
+    return (
+      this.partnerMode &&
+      msg.role === 'assistant' &&
+      msg.messageType === 'affiliate' &&
+      !!msg.content
+    );
+  }
+
+  private getAffiliateCardData(msg: ChatMessage): { casino: string; url: string; bonus: string } {
+    const content = msg.content ?? {};
+    const casino = typeof content['casino'] === 'string' ? content['casino'] : '';
+    const url = typeof content['url'] === 'string' ? content['url'] : '';
+    const bonus = typeof content['bonus'] === 'string' ? content['bonus'] : '';
+    return { casino, url, bonus };
+  }
+
   render() {
     if (this.messages.length === 0 && !this.loading) {
+      const partnerLabel = this.partnerName ? `TipsterBro × ${this.partnerName}` : 'TipsterBro';
+      const welcomeTitle = this.partnerMode ? `Hi! I'm your ${partnerLabel} assistant` : "Hi! I'm SirBro AI";
+      const welcomeDesc = this.partnerMode
+        ? `Play games like roulette, slots, and more — or ask me for up to 3 football predictions today.`
+        : 'Your intelligent sports betting assistant. Ask me anything about predictions, tips, or how SirBro works.';
+
       return html`
         <div class="welcome">
           <div class="welcome-icon">
@@ -326,10 +396,10 @@ export class MessageList extends LitElement {
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
           </div>
-          <h3>Hi! I'm SirBro AI</h3>
-          <p>Your intelligent sports betting assistant. Ask me anything about predictions, tips, or how SirBro works.</p>
+          <h3>${welcomeTitle}</h3>
+          <p>${welcomeDesc}</p>
           <div class="suggestions">
-            ${this.suggestions.map(
+            ${this.activeSuggestions.map(
               (s) => html`
                 <button
                   class="suggestion-chip"
@@ -348,11 +418,21 @@ export class MessageList extends LitElement {
       ${this.messages.map(
         (msg) => html`
           <div class="message ${msg.role}">
-            ${this.shouldRenderPredictionCard(msg)
+            ${this.shouldRenderAffiliateCard(msg)
+              ? html`
+                  <sirbro-affiliate-card
+                    .casino=${this.getAffiliateCardData(msg).casino}
+                    .url=${this.getAffiliateCardData(msg).url}
+                    .bonus=${this.getAffiliateCardData(msg).bonus}
+                  ></sirbro-affiliate-card>
+                `
+              : this.shouldRenderPredictionCard(msg)
               ? html`
                   <sirbro-prediction-card
                     .content=${msg.content ?? null}
                     .locale=${this.locale}
+                    .partnerMode=${this.partnerMode}
+                    .betUrl=${this.betUrl}
                   ></sirbro-prediction-card>
                 `
               : html`

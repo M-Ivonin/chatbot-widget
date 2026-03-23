@@ -12,7 +12,7 @@ npm run build   # Outputs dist/sirbro-chat.js
 
 ## Integration
 
-Add to any website:
+### SirBro.com Version
 
 ```html
 <script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js"></script>
@@ -22,12 +22,59 @@ Add to any website:
 ></sirbro-chat>
 ```
 
-### Attributes
+### Partners Version
 
-| Attribute    | Default                              | Description                  |
-|-------------|--------------------------------------|------------------------------|
-| `api-url`   | `https://api.tipsterbro.com/v1`      | Backend API base URL         |
-| `brand-icon`| (none)                               | URL to custom icon image     |
+Partner mode is **auto-detected** when the `partner-id` attribute is present.
+
+```html
+<script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js"></script>
+<sirbro-chat
+  api-url="https://api.tipsterbro.com/v1"
+  brand-icon="https://sirbro.com/assets/brandmark.png"
+  partner-id="casino-brand-123"
+  partner-logo="https://partner.com/logo.png"
+  partner-name="CasinoBrand"
+  affiliates='[
+    {"casino":"CasinoBrand","url":"https://casino.com/ref=123","bonus":"100% up to €200"},
+    {"casino":"BetKing","url":"https://betking.com/ref=abc","bonus":"50 free spins"},
+    {"casino":"SpinCity","url":"https://spincity.com/ref=xyz","bonus":"€100 no-deposit"}
+  ]'
+  accent-color="#ff6b35"
+  widget-width="420"
+  widget-height="600"
+></sirbro-chat>
+```
+
+### All Attributes
+
+| Attribute          | Default                         | Description                                            |
+|-------------------|---------------------------------|--------------------------------------------------------|
+| `api-url`         | `https://api.tipsterbro.com/v1` | Backend API base URL                                   |
+| `brand-icon`      | (none)                          | URL to SirBro icon image                               |
+| `show-markdown`   | `false`                         | Render bot responses as markdown (SirBro mode)         |
+| `partner-id`      | (none)                          | **Enables partner mode** when set; sent to backend     |
+| `partner-logo`    | (none)                          | Partner brand logo URL for co-branded header           |
+| `partner-name`    | (none)                          | Partner name shown in header and welcome screen        |
+| `affiliates`      | (none)                          | JSON array of `{casino, url, bonus}` affiliate configs |
+| `accent-color`    | `#6366f1`                       | Override primary accent colour (hex / rgb)             |
+| `widget-width`    | `400`                           | Widget width in px                                     |
+| `widget-height`   | `560`                           | Widget height in px                                    |
+
+### CSS Variable Customisation
+
+Override any design token on the `<sirbro-chat>` host element:
+
+```css
+sirbro-chat {
+  --sirbro-accent: #ff6b35;          /* Primary accent colour */
+  --sirbro-bg: rgba(5, 5, 10, 0.9); /* Chat window background */
+  --sirbro-font: 'Inter', sans-serif; /* Font family */
+  --sirbro-font-size-base: 15px;     /* Base font size */
+  --sirbro-width: 420px;             /* Widget width */
+  --sirbro-height: 620px;            /* Widget height */
+  --sirbro-radius: 20px;             /* Border radius */
+}
+```
 
 ## Architecture
 

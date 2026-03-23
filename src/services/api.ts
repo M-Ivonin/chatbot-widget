@@ -28,10 +28,18 @@ export interface RateLimitPopupData {
   androidStoreUrl?: string;
 }
 
+export interface AffiliateConfig {
+  casino: string;
+  url: string;
+  bonus: string;
+}
+
 export interface GuestChatRequest {
   sessionId: string;
   message: string;
   locale?: string;
+  partnerId?: string;
+  faqLink?: string;
 }
 
 type SupportedLocale = 'en-US' | 'es-419' | 'pt-BR';
@@ -66,11 +74,21 @@ export class ChatApiService {
     sessionId: string,
     message: string,
     locale?: string,
+    partnerId?: string,
+    faqLink?: string,
   ): Promise<ChatMessage[]> {
     const payload: GuestChatRequest = { sessionId, message };
 
     if (locale) {
       payload.locale = locale;
+    }
+
+    if (partnerId) {
+      payload.partnerId = partnerId;
+    }
+
+    if (faqLink) {
+      payload.faqLink = faqLink;
     }
 
     const response = await fetch(`${this.apiUrl}/chat/guest-message`, {

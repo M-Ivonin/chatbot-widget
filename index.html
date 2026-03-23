@@ -12,15 +12,89 @@
       font-family: system-ui, -apple-system, sans-serif;
       color: #fff;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 20px;
     }
-    h1 { opacity: 0.3; font-size: 1.5rem; }
+    h1 { opacity: 0.3; font-size: 1.5rem; margin: 0; }
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+    .mode-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: #6366f1;
+      border-color: #6366f1;
+    }
+    .mode-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.1);
+    }
+    .label {
+      font-size: 12px;
+      opacity: 0.4;
+    }
   </style>
 </head>
 <body>
   <h1>SirBro Chat Widget Preview</h1>
+  <div class="controls">
+    <button class="mode-btn active" id="btn-sirbro" onclick="setMode('sirbro')">SirBro Mode</button>
+    <button class="mode-btn" id="btn-partner" onclick="setMode('partner')">Partner Mode</button>
+  </div>
+  <p class="label" id="mode-label">Default SirBro widget</p>
+
   <script type="module" src="/src/sirbro-chat.ts"></script>
-  <sirbro-chat api-url="http://localhost:3001/v1"></sirbro-chat>
+
+  <!-- SirBro Mode -->
+  <sirbro-chat
+    id="widget-sirbro"
+    api-url="http://localhost:3001/v1"
+  ></sirbro-chat>
+
+  <!-- Partner Mode (hidden by default) -->
+  <sirbro-chat
+    id="widget-partner"
+    api-url="http://localhost:3001/v1"
+    partner-id="demo-casino-001"
+    partner-name="DemoCasino"
+    affiliates='[{"casino":"DemoCasino","url":"https://example.com/casino1","bonus":"100% up to €200"},{"casino":"BetKing","url":"https://example.com/casino2","bonus":"50 free spins"},{"casino":"SpinCity","url":"https://example.com/casino3","bonus":"€100 no-deposit"}]'
+    accent-color="#f59e0b"
+    style="display:none"
+  ></sirbro-chat>
+
+  <script>
+    function setMode(mode) {
+      const sirbro = document.getElementById('widget-sirbro');
+      const partner = document.getElementById('widget-partner');
+      const btnSirbro = document.getElementById('btn-sirbro');
+      const btnPartner = document.getElementById('btn-partner');
+      const label = document.getElementById('mode-label');
+
+      if (mode === 'sirbro') {
+        sirbro.style.display = '';
+        partner.style.display = 'none';
+        btnSirbro.classList.add('active');
+        btnPartner.classList.remove('active');
+        label.textContent = 'Default SirBro widget';
+      } else {
+        sirbro.style.display = 'none';
+        partner.style.display = '';
+        btnSirbro.classList.remove('active');
+        btnPartner.classList.add('active');
+        label.textContent = 'Partner mode — co-branded, affiliate links, partner accent colour';
+      }
+    }
+  </script>
 </body>
 </html>

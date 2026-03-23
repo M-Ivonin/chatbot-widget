@@ -2,6 +2,13 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { chatTheme } from '../styles/theme.js';
+import { IOS_STORE_URL, ANDROID_STORE_URL } from '../constants.js';
+
+const GOOGLE_PLAY_ICON_PATH =
+  'M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z';
+
+const APPLE_ICON_PATH =
+  'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z';
 
 type SupportedLocale = 'en-US' | 'es-419' | 'pt-BR';
 
@@ -201,11 +208,68 @@ export class PredictionCard extends LitElement {
         color: var(--sirbro-text, #f0f0f5);
         white-space: pre-wrap;
       }
+
+      .partner-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px 12px 12px;
+        margin: 0 12px 12px;
+        border-radius: 0 0 14px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .partner-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: none;
+        font-family: var(--sirbro-font, system-ui, sans-serif);
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: filter var(--sirbro-transition, 0.25s),
+          transform var(--sirbro-transition, 0.25s);
+      }
+
+      .partner-btn:hover {
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+      }
+
+      .partner-btn:active {
+        transform: scale(0.96);
+      }
+
+      .partner-btn svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+      }
+
+      .partner-btn.bet {
+        background: var(--sirbro-accent, #6366f1);
+        color: #fff;
+      }
+
+      .partner-btn.download {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--sirbro-text, #f0f0f5);
+      }
     `,
   ];
 
   @property({ attribute: false }) content: Record<string, unknown> | null = null;
   @property({ type: String }) locale = 'en-US';
+  @property({ type: Boolean }) partnerMode = false;
+  @property({ type: String }) betUrl = '';
 
   private normalizeLocale(locale?: string): SupportedLocale {
     const normalized = locale?.toLowerCase().replace('_', '-');
@@ -326,7 +390,7 @@ export class PredictionCard extends LitElement {
           </div>
         </div>
 
-        ${analysis
+        ${analysis && !this.partnerMode
           ? html`
               <div class="analysis">
                 <div class="analysis-title">${labels.analysis}</div>
@@ -334,8 +398,43 @@ export class PredictionCard extends LitElement {
               </div>
             `
           : ''}
-      </div>
-    `;
+
+        ${this.partnerMode
+          ? html`
+              <div class="partner-actions">
+                ${this.betUrl
+                  ? html`
+                      <a
+                        class="partner-btn bet"
+                        href=${this.betUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/>
+                        </svg>
+                        Bet
+                      </a>
+                    `
+                  : ''}
+                <a
+                  class="partner-btn download"
+                  href=${IOS_STORE_URL || ANDROID_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Download App
+                </a>
+              </div>
+            `
+         : ''}
+     </div>
+   `;
   }
 }
 

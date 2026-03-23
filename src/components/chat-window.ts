@@ -2,9 +2,10 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { chatTheme } from '../styles/theme.js';
 import { ChatApiError, ChatApiService } from '../services/api.js';
-import type { ChatMessage, RateLimitPopupData } from '../services/api.js';
+import type { AffiliateConfig, ChatMessage, RateLimitPopupData } from '../services/api.js';
 import { getSessionId } from '../utils/session.js';
 import { loadSessionMessages, saveSessionMessages } from '../utils/history.js';
+import { IOS_STORE_URL, ANDROID_STORE_URL } from '../constants.js';
 
 import './message-list.js';
 import './message-input.js';
@@ -26,8 +27,8 @@ export class ChatWindow extends LitElement {
         position: fixed;
         bottom: 88px;
         right: 20px;
-        width: 400px;
-        height: 560px;
+        width: var(--sirbro-width, 400px);
+        height: var(--sirbro-height, 560px);
         max-height: calc(100vh - 110px);
         max-width: calc(100vw - 24px);
         border-radius: var(--sirbro-radius, 16px);
@@ -99,6 +100,27 @@ export class ChatWindow extends LitElement {
         width: 100%;
         height: 100%;
         object-fit: cover;
+      }
+
+      .partner-cobranding {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .partner-cobranding .separator {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--sirbro-text-muted, rgba(240, 240, 245, 0.5));
+        line-height: 1;
+      }
+
+      .partner-logo {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        object-fit: cover;
+        background: var(--sirbro-surface, rgba(255, 255, 255, 0.06));
       }
 
       .header-info h4 {
@@ -267,6 +289,51 @@ export class ChatWindow extends LitElement {
         color: var(--sirbro-text, #f0f0f5);
       }
 
+      .popup-divider {
+        margin: 14px 0 10px;
+        border: none;
+        border-top: 1px solid var(--sirbro-border, rgba(255, 255, 255, 0.08));
+      }
+
+      .popup-sub-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sirbro-text-muted, rgba(240, 240, 245, 0.5));
+        margin-bottom: 10px;
+      }
+
+      .affiliate-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 44px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--sirbro-accent, #6366f1);
+        color: #fff;
+        font-family: var(--sirbro-font, system-ui, sans-serif);
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: filter var(--sirbro-transition, 0.25s),
+          transform var(--sirbro-transition, 0.25s);
+      }
+
+      .affiliate-cta:hover {
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+      }
+
+      .affiliate-bonus {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #fbbf24;
+        font-weight: 600;
+        text-align: center;
+      }
+
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(4px); }
         to { opacity: 1; transform: translateY(0); }
@@ -300,7 +367,17 @@ export class ChatWindow extends LitElement {
   @property({ type: Boolean }) loading = false;
   @property({ type: String }) error = '';
 
+  /* ── Partner properties ───────────────────────────────────────── */
+  @property({ type: Boolean }) isPartnerMode = false;
+  @property({ type: String, attribute: 'partner-id' }) partnerId = '';
+  @property({ type: String, attribute: 'partner-logo' }) partnerLogo = '';
+  @property({ type: String, attribute: 'partner-name' }) partnerName = '';
+  @property({ type: Array }) affiliates: AffiliateConfig[] = [];
+  @property({ type: String, attribute: 'faq-link' }) faqLink = '';
+  /* ─────────────────────────────────────────────────────────────── */
+
   @state() private rateLimitPopup: RateLimitPopupData | null = null;
+  @state() private affiliateIndex = 0;
 
   private api!: ChatApiService;
   private sessionId = '';
@@ -340,6 +417,8 @@ export class ChatWindow extends LitElement {
         this.sessionId,
         text,
         this.browserLocale,
+        this.partnerId || undefined,
+        this.faqLink || undefined,
       );
 
       const assistantMessages = responseMessages.filter(
@@ -361,6 +440,9 @@ export class ChatWindow extends LitElement {
     } catch (err) {
       if (err instanceof ChatApiError && err.rateLimit) {
         this.rateLimitPopup = err.rateLimit;
+        if (this.isPartnerMode && this.affiliates.length > 0) {
+          this.affiliateIndex = (this.affiliateIndex + 1) % this.affiliates.length;
+        }
         return;
       }
 
@@ -389,6 +471,18 @@ export class ChatWindow extends LitElement {
     this.rateLimitPopup = null;
   }
 
+  private get currentAffiliate(): AffiliateConfig | null {
+    if (!this.affiliates.length) return null;
+    return this.affiliates[this.affiliateIndex % this.affiliates.length];
+  }
+
+  private get downloadStoreUrl(): string {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    if (/android/i.test(ua)) return ANDROID_STORE_URL;
+    if (/iphone|ipad|ipod/i.test(ua)) return IOS_STORE_URL;
+    return IOS_STORE_URL;
+  }
+
   private renderStoreButton(type: 'play' | 'apple', href: string) {
     const label = type === 'play' ? 'Google Play' : 'App Store';
     const iconPath = type === 'play' ? GOOGLE_PLAY_ICON_PATH : APPLE_ICON_PATH;
@@ -412,13 +506,27 @@ export class ChatWindow extends LitElement {
     return html`
       <div class="header">
         <div class="header-left">
-          <div class="header-avatar">
-            ${this.brandIcon
-              ? html`<img src="${this.brandIcon}" alt="SirBro" />`
-              : html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`}
-          </div>
+          ${this.isPartnerMode && this.partnerLogo
+            ? html`
+                <div class="partner-cobranding">
+                  <div class="header-avatar">
+                    ${this.brandIcon
+                      ? html`<img src="${this.brandIcon}" alt="SirBro" />`
+                      : html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`}
+                  </div>
+                  <span class="separator">×</span>
+                  <img class="partner-logo" src="${this.partnerLogo}" alt="${this.partnerName}" />
+                </div>
+              `
+            : html`
+                <div class="header-avatar">
+                  ${this.brandIcon
+                    ? html`<img src="${this.brandIcon}" alt="SirBro" />`
+                    : html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`}
+                </div>
+              `}
           <div class="header-info">
-            <h4>SirBro AI</h4>
+            <h4>${this.isPartnerMode && this.partnerName ? `SirBro AI × ${this.partnerName}` : 'SirBro AI'}</h4>
             <span><span class="online-dot"></span> Always online</span>
           </div>
         </div>
@@ -436,6 +544,10 @@ export class ChatWindow extends LitElement {
           .loading=${this.loading}
           .showMarkdown=${this.showMarkdown}
           .locale=${this.browserLocale}
+          .partnerMode=${this.isPartnerMode}
+          .partnerName=${this.partnerName}
+          .affiliates=${this.affiliates}
+          .betUrl=${this.currentAffiliate?.url ?? ''}
           @send-message=${this.handleSendMessage}
         ></sirbro-message-list>
 
@@ -450,20 +562,38 @@ export class ChatWindow extends LitElement {
                   <div class="popup-title">SirBro AI</div>
                   <div class="popup-message">${this.rateLimitPopup.message}</div>
 
-                  <div class="store-buttons">
-                    ${this.rateLimitPopup.androidStoreUrl
-                      ? this.renderStoreButton(
-                          'play',
-                          this.rateLimitPopup.androidStoreUrl,
-                        )
-                      : ''}
-                    ${this.rateLimitPopup.iosStoreUrl
-                      ? this.renderStoreButton(
-                          'apple',
-                          this.rateLimitPopup.iosStoreUrl,
-                        )
-                      : ''}
-                  </div>
+                  ${this.isPartnerMode && this.currentAffiliate
+                    ? html`
+                        <div class="store-buttons" style="margin-top:14px">
+                          <a
+                            class="affiliate-cta"
+                            href=${this.currentAffiliate.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >Play at ${this.currentAffiliate.casino}</a>
+                          ${this.currentAffiliate.bonus
+                            ? html`<div class="affiliate-bonus">${this.currentAffiliate.bonus}</div>`
+                            : ''}
+                        </div>
+                        ${html`
+                          <hr class="popup-divider" />
+                          <div class="popup-sub-title">Or download the app</div>
+                          <div class="store-buttons">
+                            ${this.renderStoreButton('play', ANDROID_STORE_URL)}
+                            ${this.renderStoreButton('apple', IOS_STORE_URL)}
+                          </div>
+                        `}
+                      `
+                    : html`
+                        <div class="store-buttons">
+                          ${this.rateLimitPopup.androidStoreUrl
+                            ? this.renderStoreButton('play', this.rateLimitPopup.androidStoreUrl)
+                            : ''}
+                          ${this.rateLimitPopup.iosStoreUrl
+                            ? this.renderStoreButton('apple', this.rateLimitPopup.iosStoreUrl)
+                            : ''}
+                        </div>
+                      `}
 
                   <div class="popup-actions">
                     <button class="popup-close" @click=${this.closeRateLimitPopup}>
