@@ -49,6 +49,7 @@ Add the widget script before the closing `</body>` tag of your page:
   partner-id="YOUR_PARTNER_ID"
   partner-name="YourBrand"
   partner-logo="https://yourdomain.com/logo.png"
+  faq-link="https://yourdomain.com/faq"
   affiliates='[
     {"casino":"YourBrand","url":"https://yourdomain.com/register","bonus":"100% up to €200"},
     {"casino":"Sister Casino","url":"https://sister.com/promo","bonus":"50 Free Spins"}
@@ -58,7 +59,6 @@ Add the widget script before the closing `</body>` tag of your page:
 ```
 
 > **Note:** `partner-id` must match a record in the `partner_configs` database table configured by the SirBro team. Contact your integration manager to register your partner ID.
-> **Optional:** Override the API endpoint with `api-url="https://your-custom-api.com/v1"` if needed. Defaults to `https://api.tipsterbro.com/v1`.
 
 ---
 
@@ -227,21 +227,6 @@ sirbro-chat {
 
 ---
 
-## Partner Onboarding Checklist
-
-Complete these steps with your SirBro integration manager before going live:
-
-- [ ] **Partner ID registered** — SirBro team creates a row in `partner_configs` with your `partner_id`
-- [ ] **FAQ document prepared** — A plain text or PDF document containing answers to common questions about your platform (deposit methods, KYC, promotions, etc.)
-- [ ] **FAQ document uploaded** — The document URL is saved as `faq_document_url` in `partner_configs`
-- [ ] **CORS origin added** — Your website origin is added to the backend CORS allowlist
-- [ ] **Affiliate links tested** — All `affiliates[].url` values tested end-to-end with tracking params
-- [ ] **App store URLs confirmed** — `ios-store-url` and `android-store-url` point to live app listings
-- [ ] **Accent colour approved** — Brand colour confirmed and tested for accessibility contrast
-- [ ] **Staging test passed** — Full flow tested on staging environment before production
-
----
-
 ## UI Behaviour in Partner Mode
 
 ### Header
@@ -365,32 +350,6 @@ No additional CORS configuration is required for partner integrations when using
 Contact the SirBro team to add your origin to the allowlist.
 
 ---
-
-## Architecture Notes
-
-```
-chatbot-widget/
-├── src/sirbro-chat.ts           # Entry point — parses partner attrs, applies CSS vars
-├── src/components/
-│   ├── chat-window.ts           # Co-branded header, partner limit popup
-│   ├── message-list.ts          # Partner welcome screen, affiliate-card rendering
-│   ├── prediction-card.ts       # Bet + Download App buttons in partner mode
-│   └── affiliate-card.ts        # Casino affiliate card component
-└── src/services/api.ts          # Sends partnerId in every request body
-
-tipsterBro-bakend/
-├── src/partner/
-│   ├── entities/partner-config.entity.ts   # partner_configs DB table
-│   ├── partner-config.repository.ts        # DB access
-│   ├── partner.service.ts                  # resolvePartnerContext()
-│   └── partner.module.ts                   # NestJS module
-├── src/chat/
-│   ├── dto/guest-message.dto.ts            # Added partnerId field
-│   ├── guest-chat.controller.ts            # Passes partnerId to service
-│   └── chat.service.ts                     # Resolves partner context, threads to n8n
-└── src/migrations/
-    └── 1772000000000-CreatePartnerConfigsTable.ts
-```
 
 ### Data Flow Summary
 
