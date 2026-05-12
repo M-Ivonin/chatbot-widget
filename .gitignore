@@ -1,3 +1,7 @@
 node_modules
 dist
 *.local
+
+# Codex Orchestrator runtime state
+/.codex-orchestrator/state/
+/.codex-orchestrator/workspaces/
