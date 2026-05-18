@@ -1,33 +1,38 @@
 # AGENTS.md
 
-## 1. Project Scope
+## Purpose
 
-This file contains app-specific instructions for `/chatbot-widget` (Lit/Vite embeddable chatbot widget).
-Global multi-project rules are in `/Users/serhiimytakii/Projects/Levantem/AGENTS.md`.
+This is the first-read routing layer for `/chatbot-widget`, the Lit/Vite embeddable chatbot widget. Global workspace rules live in `/Users/serhiimytakii/Projects/Levantem/AGENTS.md`.
 
-## 2. Stack and Conventions
+## Start Here
 
-- Framework: `Lit` Web Components
-- Build tool: `Vite`
-- Language: TypeScript
-- Output: IIFE bundle for third-party site embedding
-- Styling: Shadow DOM styles and existing design tokens in `src/styles`
+- For detailed execution and validation workflow, read `docs/agents/execution-routing.md`.
+- Use this repository for widget UI, partner mode, widget attributes, Shadow DOM styling, guest chat client behavior, and bundle/deployment behavior.
+- For backend chat API changes, inspect `/Users/serhiimytakii/Projects/Levantem/tipsterBro-bakend` and make backend edits there.
 
-## 3. Follow Existing Code Style
+## Stack Map
 
-- Inspect similar modules in `/chatbot-widget/src` before editing.
+- Framework: Lit Web Components.
+- Build tool: Vite.
+- Language: TypeScript.
+- Output: IIFE bundle for third-party embedding.
+- Quality sources: `package.json`, `tsconfig.json`, Vite config, and browser verification.
+
+## Non-Negotiables
+
+- Inspect similar modules in `src` before editing.
 - Match existing Lit component, service, utility, and styling patterns.
-- Preserve widget isolation: avoid leaking global CSS, dependencies, or browser state into host pages.
-- Reuse current helpers and attributes before adding new public API.
+- Preserve widget isolation: do not leak global CSS, dependencies, or browser state into host pages.
+- Reuse current helpers and attributes before adding public API.
 
-## 4. Routing
+## Quality And Boundary Preflight
 
-Use this repository for chatbot widget UI, partner mode, widget attributes, Shadow DOM styling, guest chat client behavior, and bundle/deployment behavior.
+When changing imports, components, services, widget attributes, Shadow DOM styles, bundle behavior, scripts, or backend contract wiring:
 
-For backend chat API changes, inspect `/Users/serhiimytakii/Projects/Levantem/tipsterBro-bakend` and make backend edits there.
+1. Read the owning source-of-truth first: nearby `src` files, `README.md`, `package.json`, and `tsconfig.json`.
+2. After widget code changes, run `npm run build`.
+3. For rendered UI or interaction changes, run the local Vite app and verify the embedded widget in a browser.
 
-## 5. Runtime Checks
+## Final Response
 
-- Run `npm run build` after widget code changes.
-- Run existing lint/test scripts when present and relevant.
-- If changing rendered UI or interactions, run the local Vite app and verify the widget in a browser.
+State what changed, what was verified, and any unresolved errors or skipped checks.
