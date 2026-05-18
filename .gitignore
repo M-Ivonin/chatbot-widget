@@ -5,3 +5,7 @@ dist
 # Codex Orchestrator runtime state
 /.codex-orchestrator/state/
 /.codex-orchestrator/workspaces/
+
+# codex-orchestrator runtime files
+.codex-orchestrator/workspaces/
+.codex-orchestrator/state/
