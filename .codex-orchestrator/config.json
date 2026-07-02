@@ -3,7 +3,7 @@
   "github": {
     "owner": "M-Ivonin",
     "repo": "chatbot-widget",
-    "prepareLabels": "create-missing",
+    "prepareLabels": "report-only",
     "labels": {
       "auto": {
         "name": "agent:auto",
@@ -127,6 +127,7 @@
   "reviewGates": {
     "acceptanceProof": {
       "enabled": true,
+      "proofStrategy": "auto",
       "artifactDir": ".codex-orchestrator/proofs",
       "issueTextPatterns": [
         "\\bUI\\b",
