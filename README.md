@@ -1,114 +1,110 @@
 # SirBro Chatbot Widget
 
-Standalone embeddable AI chatbot widget built with **Lit** Web Components + **Vite**. Deployable on Vercel, integrates on any website via a single `<script>` tag.
+Embeddable Lit Web Component distributed as a single IIFE bundle. The widget
+uses Shadow DOM for style isolation and sends guest chat requests to the
+TipsterBro backend.
 
-## Quick Start
+## Development
 
-```bash
+```sh
 npm install
-npm run dev     # Dev server at http://localhost:5173
-npm run build   # Outputs dist/sirbro-chat.js
+npm run dev
+npm run build
 ```
 
-## Integration
+The build authority is `vite.config.ts`. Production output is
+`dist/sirbro-chat.js`; `vercel.json` owns static deployment and CORS headers.
+This repository currently has no lint or test command, so `npm run build` is
+the available automated validation gate.
 
-### SirBro.com Version
+## Embed
 
 ```html
-<script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js"></script>
-<sirbro-chat
-  api-url="https://api.tipsterbro.com/v1"
-  brand-icon="https://sirbro.com/assets/brandmark.png"
-></sirbro-chat>
+<script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js" defer></script>
+<sirbro-chat brand-icon="https://sirbro.com/assets/brandmark.png"></sirbro-chat>
 ```
 
-### Partners Version
-
-Partner mode is **auto-detected** when the `partner-id` attribute is present.
+The backend defaults to `https://api.tipsterbro.com/v1`. Override it only for a
+controlled environment:
 
 ```html
-<script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js"></script>
+<sirbro-chat api-url="https://api-dev.tipsterbro.com/v1"></sirbro-chat>
+```
+
+## Public attributes
+
+Attributes are public API. Update this table and add browser evidence whenever
+their behavior changes.
+
+| Attribute       | Default        | Contract                                                                              |
+| --------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `api-url`       | production API | Backend base URL; `/chat/guest-message` is appended.                                  |
+| `brand-icon`    | empty          | Absolute URL for the launcher/header brand image.                                     |
+| `show-markdown` | `false`        | Any value other than the string `false` enables Markdown rendering.                   |
+| `partner-id`    | empty          | Enables partner mode and is sent with guest requests. It is not a secret.             |
+| `partner-logo`  | empty          | Absolute URL for the co-branded header logo.                                          |
+| `partner-name`  | empty          | Display name used by partner-mode UI.                                                 |
+| `affiliates`    | empty          | JSON array of `{casino, url, bonus}` objects. Invalid JSON degrades to no affiliates. |
+| `faq-link`      | empty          | Optional URL sent to the backend as partner context.                                  |
+| `accent-color`  | theme default  | CSS color assigned to `--sirbro-accent`.                                              |
+| `widget-width`  | `400`          | Width in pixels.                                                                      |
+| `widget-height` | `560`          | Height in pixels.                                                                     |
+
+## Partner embed
+
+`partner-id` enables partner mode. The ID must be registered in the backend;
+registration, rate limits, FAQ ingestion, and partner persistence remain
+backend-owned contracts.
+
+```html
+<script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js" defer></script>
 <sirbro-chat
-  api-url="https://api.tipsterbro.com/v1"
-  brand-icon="https://sirbro.com/assets/brandmark.png"
-  partner-id="casino-brand-123"
-  partner-logo="https://partner.com/logo.png"
-  partner-name="CasinoBrand"
-  affiliates='[
-    {"casino":"CasinoBrand","url":"https://casino.com/ref=123","bonus":"100% up to €200"},
-    {"casino":"BetKing","url":"https://betking.com/ref=abc","bonus":"50 free spins"},
-    {"casino":"SpinCity","url":"https://spincity.com/ref=xyz","bonus":"€100 no-deposit"}
-  ]'
+  partner-id="partner-123"
+  partner-name="Partner"
+  partner-logo="https://partner.example/logo.png"
+  faq-link="https://partner.example/faq"
+  affiliates='[{"casino":"Partner","url":"https://partner.example/join","bonus":"Welcome offer"}]'
   accent-color="#ff6b35"
   widget-width="420"
   widget-height="600"
 ></sirbro-chat>
 ```
 
-### All Attributes
+Affiliate URLs are rendered as outbound CTAs. Use HTTPS, include tracking in
+the URL itself, and never place secrets or authentication tokens in attributes.
 
-| Attribute          | Default                         | Description                                                     |
-|-------------------|---------------------------------|-----------------------------------------------------------------|
-| `api-url`         | `https://api.tipsterbro.com/v1` | Backend API base URL (optional, defaults to production)         |
-| `brand-icon`      | (none)                          | URL to SirBro icon image                                        |
-| `show-markdown`   | `false`                         | Render bot responses as markdown (SirBro mode)                   |
-| `partner-id`      | (none)                          | **Enables partner mode** when set; sent to backend               |
-| `partner-logo`    | (none)                          | Partner brand logo URL for co-branded header                     |
-| `partner-name`    | (none)                          | Partner name shown in header and welcome screen                  |
-| `affiliates`      | (none)                          | JSON array of `{casino, url, bonus}` affiliate configs          |
-| `faq-link`        | (none)                          | URL to partner FAQ page (optional, passed to AI for context)     |
-| `accent-color`    | `#6366f1`                       | Override primary accent colour (hex / rgb)                      |
-| `widget-width`    | `400`                           | Widget width in px                                              |
-| `widget-height`   | `560`                           | Widget height in px                                             |
+## CSS customization
 
-### CSS Variable Customisation
-
-Override any design token on the `<sirbro-chat>` host element:
+Host pages may override the stable design tokens exposed by
+`src/styles/theme.ts`:
 
 ```css
 sirbro-chat {
-  --sirbro-accent: #ff6b35;          /* Primary accent colour */
-  --sirbro-bg: rgba(5, 5, 10, 0.9); /* Chat window background */
-  --sirbro-font: 'Inter', sans-serif; /* Font family */
-  --sirbro-font-size-base: 15px;     /* Base font size */
-  --sirbro-width: 420px;             /* Widget width */
-  --sirbro-height: 620px;            /* Widget height */
-  --sirbro-radius: 20px;             /* Border radius */
+  --sirbro-accent: #ff6b35;
+  --sirbro-bg: rgba(5, 5, 10, 0.9);
+  --sirbro-font: Inter, sans-serif;
+  --sirbro-font-size-base: 15px;
+  --sirbro-width: 420px;
+  --sirbro-height: 600px;
+  --sirbro-radius: 20px;
 }
 ```
 
-## Architecture
+## Host security policy
 
-- **Web Component** with Shadow DOM (full style isolation)
-- **Lit 3** (~5 KB) for reactive templating
-- **IIFE bundle** — no framework dependencies leaked to host page
-- Guest session via `localStorage` UUID
-- Backend: `POST /v1/chat/guest-message` (no auth required)
+Embedding sites with Content Security Policy must allow the deployed script,
+the configured API origin in `connect-src`, and any configured logo hosts in
+`img-src`. The exact policy remains owned by the host site; do not weaken it by
+adding broad wildcards solely for the widget.
 
-## Deployment
+## Ownership and retention
 
-Deployed to Vercel as a static site. The `vercel.json` configures CORS headers for the JS bundle.
+- `src/sirbro-chat.ts` is the authority for public attributes.
+- `src/styles/theme.ts` is the authority for CSS variables and defaults.
+- `src/services/api.ts` is the authority for the widget-side request/response
+  projection.
+- Backend behavior belongs in `tipsterBro-bakend` and must not be copied here.
 
-```bash
-# Deploy via Vercel CLI
-npx vercel --prod
-```
-
-## Project Structure
-
-```
-src/
-├── sirbro-chat.ts          # Main <sirbro-chat> entry component
-├── components/
-│   ├── chat-bubble.ts      # Floating icon button (bottom-right)
-│   ├── chat-window.ts      # Chat panel with glassmorphism
-│   ├── message-list.ts     # Message rendering + welcome screen
-│   ├── message-input.ts    # Text input + send button
-│   └── typing-indicator.ts # Animated dots while bot responds
-├── services/
-│   └── api.ts              # HTTP client for backend
-├── utils/
-│   └── session.ts          # localStorage session ID
-└── styles/
-    └── theme.ts            # CSS design tokens
-```
+Keep this README focused on embedding and stable public API. Do not add backend
+implementation walkthroughs, current production counts, or duplicated source
+file inventories.
