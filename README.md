@@ -56,6 +56,21 @@ their behavior changes.
 registration, rate limits, FAQ ingestion, and partner persistence remain
 backend-owned contracts.
 
+Partner registration and permission for the embedding origin are separate
+prerequisites. Registering `partner-id` does not authorize arbitrary sites to
+call guest chat. Before embedding, have the backend owner confirm that the
+intended origin is accepted by the guest-chat middleware. Its current policy is
+defined in the sibling backend's
+[`widget-cors.middleware.ts`](https://github.com/M-Ivonin/tipsterBro-backend/blob/dev/src/middleware/widget-cors.middleware.ts);
+there is no self-service origin-registration API described by this widget.
+The external domains in the example below are placeholders, not an approved
+origin or a working partner configuration.
+
+Verify preflight and the actual message request from the real embedding page in
+the target test environment. A `CORS preflight denied` or `CORS denied` response
+belongs to that backend policy; changing widget attributes does not grant access.
+The script's hosting origin and the browser page's request origin are different.
+
 ```html
 <script src="https://sirbro-chatbot.vercel.app/sirbro-chat.js" defer></script>
 <sirbro-chat
